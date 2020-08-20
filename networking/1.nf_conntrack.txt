@@ -1,0 +1,13 @@
+How to increase connection track
+---
+tested on Debian/Ubuntu
+----
+File: /etc/modules
+line: nf_conntrack
+apply: reboot machine
+----
+
+----
+File: /etc/sysctl.conf
+line: net.netfilter.nf_conntrack_max=512000
+apply: sysctl -p /etc/sysctl.conf
