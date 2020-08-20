@@ -1,0 +1,47 @@
+How to configure ExpressVPN on Raspberry Router?
+
+----------------
+Diagram:
+
+[Internet] ---- [Raspberry] ---- [LAN]
+----------------
+
+----------------
+1. Install Raspberry OS and set NIC. 
+e.g: eth0 (LAN), eth1(WAN)
+----------------
+
+
+----------------
+2. Install and configure iptables:
+SNAT: output interface (tun0)
+Output interface is tun0, it is the interface of ExpressVPN
+----------------
+
+
+----------------
+3. Enable IP forwarding
+----------------
+
+
+----------------
+4. Install and configure ExpressVPN
+set autoconnect equal true:
+`expressvpn autoconnect true`
+
+connect to VPN network:
+`expressvpn connect smart`
+
+disconnect from VPN network:
+`expressvpn disconnect`
+----------------
+
+
+----------------
+5. Cron job to autoconnect ExpressVPN when reboot
+----------------
+
+
+----------------
+6. Cron job to automatic disconnect/connect to get new IP.
+----------------
