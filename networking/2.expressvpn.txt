@@ -45,3 +45,8 @@ disconnect from VPN network:
 ----------------
 6. Cron job to automatic disconnect/connect to get new IP.
 ----------------
+
+
+----------------
+7. Configure nf_conntrack: value increasing.
+----------------
