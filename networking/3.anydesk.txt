@@ -1,0 +1,35 @@
+Install Anydesk on Ubuntu 18.04
+
+---------------------------
+sudo apt update
+sudo apt -y upgrade
+---------------------------
+
+
+
+---------------------------
+wget -qO - https://keys.anydesk.com/repos/DEB-GPG-KEY | sudo apt-key add -
+echo "deb http://deb.anydesk.com/ all main" | sudo tee /etc/apt/sources.list.d/anydesk-stable.list
+---------------------------
+
+
+
+---------------------------
+sudo apt update
+sudo apt install anydesk
+---------------------------
+
+
+
+
+---------------------------
+file: /etc/gdm3/custom.conf
+[daemon]
+# Uncoment the line below to force the login screen to use Xorg
+#WaylandEnable=false
+
+# Enabling automatic login
+   AutomaticLoginEnable = true
+   AutomaticLogin = huan
+
+---------------------------
