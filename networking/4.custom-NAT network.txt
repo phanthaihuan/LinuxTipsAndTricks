@@ -1,0 +1,140 @@
+Custom NAT-based network for libvirtd:
+Four components:
+- dummy network interface
+- virtul bridge
+- iptables rules
+- dnsmasq
+
+
+--------------------------
+https://jamielinux.com/docs/libvirt-networking-handbook/custom-nat-based-network.html
+--------------------------
+
+--------------------------
+Disable the default network
+To prevent libvirt from altering the firewall, stop and disable the default network. Make sure there are no active virtual machines (VMs) still using this network.
+
+# virsh net-destroy default
+# virsh net-autostart --disable default
+--------------------------
+
+
+
+
+--------------------------
+Dummy Interface:
+https://jamielinux.com/docs/libvirt-networking-handbook/appendix/dummy-interface-on-rhel.html
+
+/etc/sysconfig/network-scripts/ifcfg-dummy0
+DEVICE=dummy0
+MACADDR=52:54:00:7e:27:af
+NM_CONTROLLED=no
+ONBOOT=yes
+TYPE=Ethernet
+BRIDGE=virbr10
+IPV6INIT=no
+--------------------------
+
+
+--------------------------
+Load the dummy module.
+
+# modprobe dummy numdummies=1
+# echo "dummy" > /etc/modules-load.d/dummy.conf
+# echo "options dummy numdummies=1" > /etc/modprobe.d/dummy.conf
+--------------------------
+
+
+
+--------------------------
+NAT virtual bridge on RHEL
+https://jamielinux.com/docs/libvirt-networking-handbook/appendix/nat-virtual-bridge-on-rhel.html
+Create /etc/sysconfig/network-scripts/ifcfg-virbr10 with these contents:
+
+DEVICE=virbr10
+NAME=virbr10
+# Change to 'no' to disable NetworkManager for this interface.
+NM_CONTROLLED=yes
+ONBOOT=yes
+TYPE=Bridge
+DELAY=2
+STP=on
+IPADDR=192.168.100.1
+NETMASK=255.255.255.0
+IPV6INIT=no
+
+
+# nmcli connection load /etc/sysconfig/network-scripts/ifcfg-virbr10
+# nmcli connection up virbr10
+--------------------------
+
+
+
+--------------------------
+Implement NAT with iptables
+IP masquerading allows many machines with private IP addresses (eg, 192.168.X.X) to communicate with the Internet through the public IP address of a router. In this case, the libvirt server acts as a router for the VMs.
+
+A router must be able to forward network packets between interfaces, so modify some kernel parameters to allow this.
+
+# echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
+# echo "net.ipv4.conf.all.forwarding=1" >> /etc/sysctl.conf
+# sysctl -p
+Implement IP masquerading in the nat table.
+
+# This format is understood by iptables-restore. See `man iptables-restore`.
+*nat
+:PREROUTING ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+# Do not masquerade to these reserved address blocks.
+-A POSTROUTING -s 192.168.100.0/24 -d 224.0.0.0/24 -j RETURN
+-A POSTROUTING -s 192.168.100.0/24 -d 255.255.255.255/32 -j RETURN
+# Masquerade all packets going from VMs to the LAN/Internet.
+-A POSTROUTING -s 192.168.100.0/24 ! -d 192.168.100.0/24 -p tcp -j MASQUERADE --to-ports 1024-65535
+-A POSTROUTING -s 192.168.100.0/24 ! -d 192.168.100.0/24 -p udp -j MASQUERADE --to-ports 1024-65535
+-A POSTROUTING -s 192.168.100.0/24 ! -d 192.168.100.0/24 -j MASQUERADE
+COMMIT
+Allow forwarding in the filter table.
+
+# This format is understood by iptables-restore. See `man iptables-restore`.
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+
+... snipped ...
+# Allow established traffic to the private subnet.
+-A FORWARD -d 192.168.100.0/24 -o virbr10 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+# Allow outbound traffic from the private subnet.
+-A FORWARD -s 192.168.100.0/24 -i virbr10 -j ACCEPT
+# Allow traffic between virtual machines.
+-A FORWARD -i virbr10 -o virbr10 -j ACCEPT
+# Reject everything else.
+-A FORWARD -i virbr10 -j REJECT --reject-with icmp-port-unreachable
+-A FORWARD -o virbr10 -j REJECT --reject-with icmp-port-unreachable
+... snipped ...
+COMMIT
+See Example of iptables NAT for a full iptables rule set.
+--------------------------
+
+
+
+--------------------------
+--------------------------
+
+
+
+--------------------------
+--------------------------
+
+
+
+
+
+--------------------------
+--------------------------
+
+
+
+--------------------------
+--------------------------

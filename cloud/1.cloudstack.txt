@@ -1,0 +1,46 @@
+Cloudstack basic deployment
+
+--------------------
+Management server
+MySQL
+--------------------
+
+
+--------------------
+Host
+Primary storage: iSCSI, NFS, CIFS, VMFS, EXT
+--------------------
+
+
+
+
+--------------------
+Secondary Storage: only use NFS
+- template
+- ISO
+- snapshot
+--------------------
+
+
+
+
+--------------------
+Networking Architecture
+@ Network traffic:
+- Guest network traffic
+- Management network traffic
+- Storage traffic
+
+@ Virtual network:
+- Isolated network
+- Shared network
+
+@ Virtual router:
+
+--------------------
+
+
+
+
+--------------------
+--------------------

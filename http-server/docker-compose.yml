@@ -1,0 +1,7 @@
+web:
+    image: nginx:latest
+    ports:
+        - "80:80"
+    volumes:
+        - ./code:/code
+        - ./b2.conf:/etc/nginx/conf.d/b2.conf
