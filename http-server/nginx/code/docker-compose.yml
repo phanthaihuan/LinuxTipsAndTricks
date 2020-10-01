@@ -5,3 +5,10 @@ web:
     volumes:
         - ./code:/code
         - ./b2.conf:/etc/nginx/conf.d/b2.conf
+    links:
+        - php
+
+php:
+    image: php:7-fpm
+    volumes:
+        - ./code:/code
